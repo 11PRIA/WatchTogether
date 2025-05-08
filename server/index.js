@@ -1,33 +1,24 @@
-// server/index.js
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
-
-// Allow connections from the frontend domain only
-app.use(
-  cors({
-    origin: "https://your-frontend-app.onrender.com", // Replace with actual frontend URL
-    methods: ["GET", "POST"]
-  })
-);
+app.use(cors()); // Optional but useful
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://your-frontend-app.onrender.com", // Replace with actual frontend URL
+    origin: "*", // You can restrict this in production
     methods: ["GET", "POST"]
   }
 });
 
-// Mapping between email and socket ID
 const emailToSocketIdMap = new Map();
 const socketIdToEmailMap = new Map();
 
 io.on("connection", (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
+  console.log(`Socket connected:`, socket.id);
 
   socket.on("room:Join", (data) => {
     const { email, room } = data;
@@ -53,16 +44,9 @@ io.on("connection", (socket) => {
   socket.on("peer:nego:done", ({ to, ans }) => {
     io.to(to).emit("peer:nego:final", { from: socket.id, ans });
   });
-
-  // Handle socket disconnection
-  socket.on('disconnect', () => {
-    console.log(`Socket disconnected: ${socket.id}`);
-    emailToSocketIdMap.delete(socketIdToEmailMap.get(socket.id));
-    socketIdToEmailMap.delete(socket.id);
-  });
 });
 
-// Set the port, use the one provided by Render or default to 8000
+// Render will set the PORT for you
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
