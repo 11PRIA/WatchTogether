@@ -13,6 +13,10 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+app.get("/", (req, res) => {
+  res.send("WatchTogether Backend is running!");
+});
+
 
 const emailToSocketIdMap = new Map();
 const socketIdToEmailMap = new Map();
